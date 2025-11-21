@@ -32,7 +32,46 @@
 
 <script>
 const KEY='grocery_v2';
-let items=load();
+// preload items restored
+const PRELOADED=[
+  {title:'Cereal Básico Dany B',done:false,cost:0},
+  {title:'Azúcar blanca',done:false,cost:0},
+  {title:'Café Selectos Gourmet',done:false,cost:0},
+  {title:'Café instantáneo',done:false,cost:0},
+  {title:'Consomé Mahler Pollo',done:false,cost:0},
+  {title:'Refresco Vivo sin azúcar',done:false,cost:0},
+  {title:'Vinagre blanco',done:false,cost:0},
+  {title:'Galleta Picnic',done:false,cost:0},
+  {title:'Queso Morolique',done:false,cost:0},
+  {title:'Huevo Selectos',done:false,cost:0},
+  {title:'Carne molida dorada',done:false,cost:0},
+  {title:'Carne molida especial',done:false,cost:0},
+  {title:'Chorizo argentino',done:false,cost:0},
+  {title:'Pollo (muslo/tierna selecta)',done:false,cost:0},
+  {title:'Salchicha de pavo',done:false,cost:0},
+  {title:'Jamón de pierna',done:false,cost:0},
+  {title:'Mortadela familiar',done:false,cost:0},
+  {title:'Posta negra',done:false,cost:0},
+  {title:'Zucchini',done:false,cost:0},
+  {title:'Brócoli mixto bandeja',done:false,cost:0},
+  {title:'Detergente líquido',done:false,cost:0},
+  {title:'Desinfectante Fabuloso',done:false,cost:0},
+  {title:'Lavaplatos',done:false,cost:0},
+  {title:'Toallas de cocina / papel toalla Elite',done:false,cost:0},
+  {title:'Papel higiénico',done:false,cost:0},
+  {title:'Jabón Protex',done:false,cost:0},
+  {title:'Crema dental Colgate',done:false,cost:0},
+  {title:'Escabeche de vegetales',done:false,cost:0},
+  {title:'Mayonesa del Chef',done:false,cost:0},
+  {title:'Bebida instantánea en polvo',done:false,cost:0},
+  {title:'6 pack Coca-Cola',done:false,cost:0},
+  {title:'Sal molida',done:false,cost:0},
+  {title:'Aceite de soya y palma',done:false,cost:0},
+  {title:'Sazonadores (tomate dulce Badia, chile limón, etc.)',done:false,cost:0},
+  {title:'Margarina Dany Vegana',done:false,cost:0}
+];
+
+let items=load()();
 
 function load(){return JSON.parse(localStorage.getItem(KEY)||'[]')}
 function save(){localStorage.setItem(KEY,JSON.stringify(items))}
