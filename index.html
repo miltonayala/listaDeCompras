@@ -7,117 +7,195 @@
   <style>
     :root{
       --bg:#f2f2f6; --card:#ffffff; --muted:#8e8e93; --accent:#007aff; --radius:16px;
+      --glass: rgba(255,255,255,0.6);
     }
     *{box-sizing:border-box}
-    body{margin:0;font-family:-apple-system,BlinkMacSystemFont; background:var(--bg);}
-    .wrap{max-width:820px;margin:auto;padding:16px}
-    ul{list-style:none;padding:0;margin:0}
-    .item{display:flex;align-items:center;gap:10px;padding:12px;border-radius:12px;background:#fff;margin-bottom:10px;position:relative}
-    .title{font-weight:600}
+    html,body{height:100%;margin:0;font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial; background:linear-gradient(180deg,#f7f7fb 0%,var(--bg) 100%); color:#111}
+    .wrap{max-width:820px;margin:18px auto;padding:16px}
+    .top{display:flex;gap:12px;align-items:center}
+    .logo{width:64px;height:64px;border-radius:14px;overflow:hidden;flex:0 0 64px;box-shadow:0 6px 18px rgba(0,0,0,0.08)}
+    .logo img{width:100%;height:100%;object-fit:cover}
+    h1{font-size:20px;margin:0}
+    p.lead{margin:2px 0 0;color:var(--muted);font-size:13px}
+
+    .card{margin-top:14px;background:var(--card);border-radius:var(--radius);padding:12px;box-shadow:0 6px 24px rgba(10,10,20,0.06)}
+    .controls{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+    button{background:transparent;border:1px solid rgba(0,0,0,0.06);padding:8px 12px;border-radius:12px;font-weight:600}
+    .accent{background:linear-gradient(180deg,var(--accent),#0062d6);color:white;border:0}
+    .muted{color:var(--muted);border:1px solid rgba(0,0,0,0.04)}
+
+    ul.checklist{list-style:none;padding:8px;margin:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+    li.item{display:flex;align-items:center;gap:10px;padding:10px;border-radius:12px;border:1px solid rgba(0,0,0,0.03)}
+    .checkbox{width:38px;height:38px;border-radius:10px;display:inline-grid;place-items:center;border:1px solid rgba(0,0,0,0.08);background:var(--glass);flex:0 0 38px}
+    input[type=checkbox]{width:18px;height:18px}
+    .label{flex:1}
+    .label .title{font-weight:600}
+    .label .sub{font-size:12px;color:var(--muted)}
+
     .done .title{text-decoration:line-through;color:var(--muted)}
-    .cost{width:70px;border:1px solid #ddd;border-radius:8px;padding:4px}
-    .menu-btn{margin-left:auto; background:#eee;padding:6px 10px;border-radius:8px;cursor:pointer}
-    .menu{display:none;position:absolute;right:12px;top:48px;background:#fff;border:1px solid #ccc;border-radius:10px;padding:8px;z-index:50}
-    .menu.show{display:block}
-    #total{font-size:18px;font-weight:700;margin-top:20px;text-align:right}
+
+    .footer{margin-top:12px;display:flex;justify-content:space-between;align-items:center}
+    .small{font-size:13px;color:var(--muted)}
+
+    /* responsive spacing for mobile */
+    @media (max-width:420px){.wrap{padding:12px}.logo{width:56px;height:56px;border-radius:12px}}
   </style>
 </head>
 <body>
   <div class="wrap">
-    <h2>Lista de Supermercado</h2>
-    <button id="addItem">Añadir producto</button>
-    <ul id="list"></ul>
-    <div id="total">Total: $0.00</div>
+    <div class="top">
+    <div class="logo" style="color:var(--accent);">
+        <svg role="img" aria-labelledby="logoTitle" viewBox="0 0 64 64" width="64" height="64" xmlns="http://www.w3.org/2000/svg">
+            <title id="logoTitle">Logo — Lista de Supermercado</title>
+            <!-- rounded square background -->
+            <rect x="0" y="0" width="64" height="64" rx="12" fill="currentColor"/>
+            <!-- shopping bag icon (white) -->
+            <path d="M42 24h-3a7 7 0 0 0-14 0h-3a5 5 0 0 0-5 5v14a5 5 0 0 0 5 5h24a5 5 0 0 0 5-5V29a5 5 0 0 0-5-5zM32 20a3 3 0 0 1 3 3h-6a3 3 0 0 1 3-3z" fill="#fff"/>
+            <!-- small accent detail -->
+            <circle cx="20" cy="22" r="1.6" fill="#ffffff" opacity="0.08"/>
+        </svg>
+    </div>
+      <div>
+        <h1>Lista de Supermercado</h1>
+        <p class="lead">Toca para marcar como completado — se guarda en tu teléfono</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="controls">
+        <button id="markAll" class="muted">Marcar todo</button>
+        <button id="unmarkAll" class="muted">Desmarcar todo</button>
+        <button id="clearDone">Borrar completados</button>
+        <button id="exportBtn" class="accent">Exportar</button>
+      </div>
+
+      <ul id="list" class="checklist" aria-live="polite">
+        <!-- items inserted by JS -->
+      </ul>
+      <!-- New features: cost field + delete button -->
+
+      <div class="footer">
+        <div class="small">Guardado localmente en este dispositivo</div>
+        <div><button id="addBtn">+ Añadir</button></div>
+      </div>
+    </div>
   </div>
 
-<script>
-const KEY='grocery_v2';
-// preload items restored
-const PRELOADED=[
-  {title:'Cereal Básico Dany B',done:false,cost:0},
-  {title:'Azúcar blanca',done:false,cost:0},
-  {title:'Café Selectos Gourmet',done:false,cost:0},
-  {title:'Café instantáneo',done:false,cost:0},
-  {title:'Consomé Mahler Pollo',done:false,cost:0},
-  {title:'Refresco Vivo sin azúcar',done:false,cost:0},
-  {title:'Vinagre blanco',done:false,cost:0},
-  {title:'Galleta Picnic',done:false,cost:0},
-  {title:'Queso Morolique',done:false,cost:0},
-  {title:'Huevo Selectos',done:false,cost:0},
-  {title:'Carne molida dorada',done:false,cost:0},
-  {title:'Carne molida especial',done:false,cost:0},
-  {title:'Chorizo argentino',done:false,cost:0},
-  {title:'Pollo (muslo/tierna selecta)',done:false,cost:0},
-  {title:'Salchicha de pavo',done:false,cost:0},
-  {title:'Jamón de pierna',done:false,cost:0},
-  {title:'Mortadela familiar',done:false,cost:0},
-  {title:'Posta negra',done:false,cost:0},
-  {title:'Zucchini',done:false,cost:0},
-  {title:'Brócoli mixto bandeja',done:false,cost:0},
-  {title:'Detergente líquido',done:false,cost:0},
-  {title:'Desinfectante Fabuloso',done:false,cost:0},
-  {title:'Lavaplatos',done:false,cost:0},
-  {title:'Toallas de cocina / papel toalla Elite',done:false,cost:0},
-  {title:'Papel higiénico',done:false,cost:0},
-  {title:'Jabón Protex',done:false,cost:0},
-  {title:'Crema dental Colgate',done:false,cost:0},
-  {title:'Escabeche de vegetales',done:false,cost:0},
-  {title:'Mayonesa del Chef',done:false,cost:0},
-  {title:'Bebida instantánea en polvo',done:false,cost:0},
-  {title:'6 pack Coca-Cola',done:false,cost:0},
-  {title:'Sal molida',done:false,cost:0},
-  {title:'Aceite de soya y palma',done:false,cost:0},
-  {title:'Sazonadores (tomate dulce Badia, chile limón, etc.)',done:false,cost:0},
-  {title:'Margarina Dany Vegana',done:false,cost:0}
-];
+  <script>
+    // Items based on receipt (user's list). Edit here if you want to change defaults.
 
-let items=load()();
+    const DEFAULT_ITEMS = [
+      {title:'Café Instantáneo'},
+      {title:'Consomé de Pollo y Carne'},
+      {title:'Refresco Vivo sin azúcar'},
+      {title:'Queso Morolique'},
+      {title:'Queso Crema'},
+      {title:'Frijoles La Chula 1 bolsa grande'},
+      {title:'Huevo 2 Cartones'},
+      {title:'Carne molida especial 1.5 lb'},
+      {title:'Chorizo argentino 1.5 lb'},
+      {title:'Pollo (muslo/pierna) 3'},
+      {title:'Salchicha de pavo 1 lb'},
+      {title:'Mortadela jamonada 1 libra'},
+      {title:'Zucchini $2'},
+      {title:'Brócoli bandeja'},
+      {title:'Detergente líquido'},
+      {title:'Desinfectante Fabuloso mas barato'},
+      {title:'Lavaplatos'},
+      {title:'Toallas de cocina / papel toalla Elite'},
+      {title:'Papel higiénico de 6 rollos scott 1000 hojas'},
+      {title:'Jabón de Baño'},
+      {title:'Mayonesa del Chef'},
+      {title:'Sal molida fina'},
+      {title:'1 botella de aceite vegetal'},
+      {title:'Mani Chile Limon'},
+      {title:'2 Crema de a Dolar'},
+      {title:'Tomate y Chile de Red'},
+      {title:'Galletas de a Dolar'}
 
-function load(){return JSON.parse(localStorage.getItem(KEY)||'[]')}
-function save(){localStorage.setItem(KEY,JSON.stringify(items))}
+    ];
 
-function render(){
-  const ul=document.getElementById('list');
-  ul.innerHTML='';
-  items.forEach((it,i)=>{
-    const li=document.createElement('li'); li.className='item'+(it.done?' done':'');
+    const KEY = 'grocery_checklist_v1_milton';
+    const listEl = document.getElementById('list');
+    const markAll = document.getElementById('markAll');
+    const unmarkAll = document.getElementById('unmarkAll');
+    const clearDone = document.getElementById('clearDone');
+    const exportBtn = document.getElementById('exportBtn');
+    const addBtn = document.getElementById('addBtn');
 
-    const chk=document.createElement('input'); chk.type='checkbox'; chk.checked=it.done;
-    chk.onchange=()=>{it.done=chk.checked; save(); render()};
-    li.appendChild(chk);
+    function load(){
+      try{
+        const raw = localStorage.getItem(KEY);
+        if(raw){
+          return JSON.parse(raw);
+        }
+      }catch(e){console.error(e)}
+      return DEFAULT_ITEMS.map(i=>({...i,done:false}));
+    }
 
-    const title=document.createElement('div'); title.className='title'; title.textContent=it.title;
-    li.appendChild(title);
+    function save(items){
+      localStorage.setItem(KEY,JSON.stringify(items));
+    }
 
-    const cost=document.createElement('input'); cost.className='cost'; cost.placeholder='$'; cost.value=it.cost||'';
-    cost.oninput=()=>{it.cost=parseFloat(cost.value)||0; save(); updateTotal()};
-    li.appendChild(cost);
+    function render(){
+      const items = load();
+      listEl.innerHTML='';
+      items.forEach((it,idx)=>{
+        const li = document.createElement('li'); li.className='item'+(it.done? ' done':'');
+        const box = document.createElement('label'); box.className='checkbox';
+        const chk = document.createElement('input'); chk.type='checkbox'; chk.checked = !!it.done; chk.dataset.idx=idx;
+        box.appendChild(chk);
+        const lbl = document.createElement('div'); lbl.className='label';
+        const title = document.createElement('div'); title.className='title'; title.textContent = it.title;
+        lbl.appendChild(title);
+        li.appendChild(box);
+        li.appendChild(lbl);
+        listEl.appendChild(li);
 
-    const btn=document.createElement('div'); btn.className='menu-btn'; btn.textContent='⋯';
-    btn.onclick=()=> menu.classList.toggle('show');
-    li.appendChild(btn);
+        chk.addEventListener('change', e=>{
+          const i = parseInt(e.target.dataset.idx,10);
+          items[i].done = e.target.checked;
+          save(items);
+          render();
+        });
 
-    const menu=document.createElement('div'); menu.className='menu';
-    const del=document.createElement('div'); del.textContent='Eliminar'; del.style.cursor='pointer'; del.onclick=()=>{items.splice(i,1); save(); render()};
-    menu.appendChild(del);
-    li.appendChild(menu);
+        // allow tap the row to toggle
+        li.addEventListener('click', ev=>{
+          if(ev.target.tagName.toLowerCase() === 'input') return;
+          const i = idx;
+          items[i].done = !items[i].done;
+          save(items);
+          render();
+        });
+      });
+    }
 
-    ul.appendChild(li);
-  });
-  updateTotal();
-}
+    markAll.addEventListener('click', ()=>{
+      const items = load(); items.forEach(i=>i.done=true); save(items); render();
+    });
+    unmarkAll.addEventListener('click', ()=>{ const items=load(); items.forEach(i=>i.done=false); save(items); render(); });
+    clearDone.addEventListener('click', ()=>{ const items=load(); const left = items.filter(i=>!i.done); save(left); render(); });
 
-function updateTotal(){
-  const total=items.reduce((s,it)=>s+(parseFloat(it.cost)||0),0);
-  document.getElementById('total').textContent='Total: $'+total.toFixed(2);
-}
+    exportBtn.addEventListener('click', ()=>{
+      const items = load();
+      const txt = items.map(i=> (i.done? '[x] ':'[ ] ') + i.title).join('\n');
+      const blob = new Blob([txt],{type:'text/plain'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href=url; a.download='lista_supermercado.txt'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+    });
 
-document.getElementById('addItem').onclick=()=>{
-  const name=prompt('Nombre del producto:');
-  if(name){ items.push({title:name,done:false,cost:0}); save(); render(); }
-};
+    addBtn.addEventListener('click', ()=>{
+      const name = prompt('Añadir producto:');
+      if(name && name.trim()){ const items = load(); items.push({title:name.trim(), done:true}); save(items); render(); }
+    });
 
-render();
-</script>
+    // initial render
+    render();
+
+    // friendly hint for mobile: preserve orientation and iOS-ish feel
+    if(/iPhone|iPad|iPod/i.test(navigator.userAgent)){
+      console.log('iOS device detected — add to Home Screen for quick access');
+    }
+  </script>
 </body>
 </html>
