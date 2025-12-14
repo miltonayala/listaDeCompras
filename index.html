@@ -205,6 +205,7 @@
     <div class="card">
       <div class="controls">
         <button id="markAll" class="muted">Marcar todo</button>
+        <button id="reloadBtn">Recargar</button>
         <button id="unmarkAll" class="muted">Desmarcar todo</button>
         <button id="clearDone">Borrar completados</button>
         <button id="exportBtn" class="accent">Exportar</button>
@@ -218,7 +219,6 @@
       <div class="footer">
         <div class="small">Guardado localmente en este dispositivo</div>
         <div><button id="addBtn">+ Añadir</button></div>
-                <div><button id="reloadBtn">Recargar</button></div>
 
       </div>
     </div>
@@ -283,7 +283,7 @@
     const clearDone = document.getElementById('clearDone');
     const exportBtn = document.getElementById('exportBtn');
     const addBtn = document.getElementById('addBtn');
-        const reloadBtn = document.getElementById('addBtn');
+        const reloadBtn = document.getElementById('reloadBtn');
 
 
     function load() {
@@ -352,16 +352,29 @@
       if (name && name.trim()) { const items = load(); items.push({ title: name.trim(), done: true }); save(items); render(); }
     });
 
-        reloadBtn.addEventListener('click', () => {
-render()
-        });
+    function reloadDefaults() {
+  // 1. Borrar almacenamiento local por completo
+  localStorage.removeItem(KEY);
 
+  // 2. Guardar DEFAULT_ITEMS frescos
+  const fresh = DEFAULT_ITEMS.map(i => ({ ...i, done: false }));
+  save(fresh);
+
+  // 3. Volver a dibujar la lista
+  render();
+
+  alert("Lista restaurada desde los valores por defecto ✔️");
+}
+
+    
     // initial render
     render();
-
+    
+    reloadBtn.addEventListener('click', reloadDefaults);
     // friendly hint for mobile: preserve orientation and iOS-ish feel
     if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
       console.log('iOS device detected — add to Home Screen for quick access');
+
     }
   </script>
 </body>
