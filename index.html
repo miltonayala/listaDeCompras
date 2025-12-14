@@ -218,6 +218,8 @@
       <div class="footer">
         <div class="small">Guardado localmente en este dispositivo</div>
         <div><button id="addBtn">+ Añadir</button></div>
+                <div><button id="reloadBtn">Recargar</button></div>
+
       </div>
     </div>
   </div>
@@ -281,6 +283,8 @@
     const clearDone = document.getElementById('clearDone');
     const exportBtn = document.getElementById('exportBtn');
     const addBtn = document.getElementById('addBtn');
+        const reloadBtn = document.getElementById('addBtn');
+
 
     function load() {
       try {
@@ -347,6 +351,10 @@
       const name = prompt('Añadir producto:');
       if (name && name.trim()) { const items = load(); items.push({ title: name.trim(), done: true }); save(items); render(); }
     });
+
+        reloadBtn.addEventListener('click', () => {
+render()
+        });
 
     // initial render
     render();
